@@ -13,7 +13,6 @@ CREATE TABLE Merchants
 	Merchant character varying(255) NOT NULL,
 	PRIMARY KEY (IdMerchant)
 ) WITH ( OIDS=FALSE );
-ALTER TABLE Products OWNER TO postgres;
 
 INSERT INTO Merchants (IdMerchant,Merchant) VALUES (1,'markavip');
 INSERT INTO Merchants (IdMerchant,Merchant) VALUES (2,'namshi');
@@ -24,16 +23,16 @@ INSERT INTO Merchants (IdMerchant,Merchant) VALUES (4,'wysada');
 CREATE TABLE Products
 (
 	IdProduct bigserial NOT NULL,
-	IdMerchant integer NOT NULL
+	IdMerchant integer NOT NULL,
 	Name character varying(255),
 	Description text,
 	OldPrice character varying(255),
 	Price character varying(255),
 	URL character varying(1024),
 	Image character varying(1024) DEFAULT NULL,
+	QueryDocument tsvector,
 	PRIMARY KEY (IdProduct),
 	FOREIGN KEY (IdMerchant) REFERENCES Merchants(IdMerchant) ON DELETE SET NULL,
 	UNIQUE(URL)
 ) WITH ( OIDS=FALSE );
-ALTER TABLE Products OWNER TO postgres;
 

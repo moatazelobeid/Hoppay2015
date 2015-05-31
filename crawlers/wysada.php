@@ -8,8 +8,8 @@ class MyCrawler extends PHPCrawler
 	
 	function handleDocumentInfo($DocInfo) 
 	{
-		echo "Page requested: ".$DocInfo->url." (".$DocInfo->http_status_code.")\n";
-		echo "Referer-page: ".$DocInfo->referer_url."\n";
+		echo "(wysada) Page requested: ".$DocInfo->url." (".$DocInfo->http_status_code.")\n";
+		echo "(wysada) Referer-page: ".$DocInfo->referer_url."\n";
 		if(strpos($DocInfo->source,"Add to Cart"))
 		{
 			$dbh = new PDO("pgsql:host=localhost;dbname=Hoopay;port=5432;","postgres","Hoopay2015");
@@ -43,7 +43,7 @@ class MyCrawler extends PHPCrawler
 			$p1 = strpos($temp,"rel=\"image_gallery\"");
 			$p1 = strpos($temp,"<img ",$p1);
 			$p1 = strpos($temp,"src=\"",$p1);
-			$p2 = strpos($temp,"\"",$p1);
+			$p2 = strpos($temp,"\"",$p1+15);
 			$image = trim(substr($temp,$p1+5,$p2-$p1-5));
 
 			$sth = $dbh->prepare("DELETE FROM Products WHERE URL ILIKE :URL");
@@ -51,7 +51,7 @@ class MyCrawler extends PHPCrawler
 			$sth->execute();
 			if($sth->errorCode() != 0) die("! erro linha: ".__LINE__."\n".$sth->errorInfo()[2]);
 
-			$sth = $dbh->prepare("INSERT INTO Products (IdMerchant,Name,Description,OldPrice,Price,URL,Image) VALUES (:IdMerchant,:Name,:Description,:OldPrice,:Price,:URL,:Image)");
+			$sth = $dbh->prepare("INSERT INTO Products (IdMerchant,Name,Description,OldPrice,Price,URL,Image,QueryDocument) VALUES (:IdMerchant,:Name::text,:Description::text,:OldPrice,:Price,:URL,:Image,to_tsvector(:Name::text) || to_tsvector(:Description::text))");
 			$sth->bindValue(":IdMerchant",self::IdMerchant);
 			$sth->bindValue(":Name",$title);
 			$sth->bindValue(":Description",$description);

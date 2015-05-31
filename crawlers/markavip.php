@@ -19,8 +19,8 @@ class MyCrawler extends PHPCrawler
 	function handleDocumentInfo($DocInfo) 
 	{
 		// output some information on the URL
-		echo "Page requested: ".$DocInfo->url." (".$DocInfo->http_status_code.")\n";
-		echo "Referer-page: ".$DocInfo->referer_url."\n";
+		echo "(markavip) Page requested: ".$DocInfo->url." (".$DocInfo->http_status_code.")\n";
+		echo "(markavip) Referer-page: ".$DocInfo->referer_url."\n";
 		
 		// check if it's valid
 		if(strpos($DocInfo->source,"Add to Cart"))
@@ -77,7 +77,7 @@ class MyCrawler extends PHPCrawler
 			if($sth->errorCode() != 0) die("! erro linha: ".__LINE__."\n".$sth->errorInfo()[2]);
 
 			// prepare the statement and insert the product in the database
-			$sth = $dbh->prepare("INSERT INTO Products (IdMerchant,Name,Description,OldPrice,Price,URL,Image) VALUES (:IdMerchant,:Name,:Description,:OldPrice,:Price,:URL,:Image)");
+			$sth = $dbh->prepare("INSERT INTO Products (IdMerchant,Name,Description,OldPrice,Price,URL,Image,QueryDocument) VALUES (:IdMerchant,:Name::text,:Description::text,:OldPrice,:Price,:URL,:Image,to_tsvector(:Name::text) || to_tsvector(:Description::text))");
 			$sth->bindValue(":IdMerchant",self::IdMerchant);
 			$sth->bindValue(":Name",$title);
 			$sth->bindValue(":Description",$description);
@@ -89,7 +89,7 @@ class MyCrawler extends PHPCrawler
 			if($sth->errorCode() != 0) die("! erro linha: ".__LINE__."\n".$sth->errorInfo()[2]);
 
 			// if we got here without dying, then we're good to go
-			echo $URL." added\n\n";
+			echo $url." added\n\n";
 		}
 		
 		// just flush buffer so we can keep up the progress

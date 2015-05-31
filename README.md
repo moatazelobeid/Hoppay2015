@@ -4,9 +4,13 @@ This is the implementation of a modified PHPCrawl to crawl the merchants website
 
 ## Installation and Execution
 The main implementation is actually platform independent. But I've tested this only in Linux. To run in Windows, you need to change the *goMultiProcessed()* to just *go*. It won't have child workers, but you can debug in Windows. I've not tested it, but I think it can work.
+<<<<<<< HEAD
+The database script is inside the *support* dir. Don't call it directly, since there's the database creation as well. The full text search engine is inside the testing script, since I prefer to leave that in the development environment. However, it's important to notice that the vectors for text search are stored directly in insert, because converting on-fly would be insane. You can perform a text search or a normal "like" query. Performance is comparative depending on the case, but I prefer full text search engine.
+=======
 
 The database script is inside the *support* dir. Don't call it directly, since there's the database creation as well. The full text search engine is inside the testing script, since I prefer to leave that in the development environment. 
 
+>>>>>>> origin/master
 Each merchant has it's script. It's actually an extension of the crawler main class, in which there's the scrapping mechanism. So you just need to call the script to run for that merchant. Remember that, although you can try to call from the webserver, it take several hours to run. So the best choice is to run from command line. Also, the scripts run infinitely to keep updating things all the time.
 
 Logging and errors are written in standard output. Use shell redirections if you want to dump it somewhere else.

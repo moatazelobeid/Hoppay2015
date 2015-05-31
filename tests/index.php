@@ -17,17 +17,19 @@ Nothing else here is really relevant. :-)
 
 */
 
+// check for required search
+$search = (isset($_POST["Search"])) ? trim($_POST["Search"]) : "";
+
 // header
 echo '
 <html>
 <body>
 <form method="post" action="">
-<p>Search: <input type="text" size="100" maxlength="255" name="Search"> <input type="submit" value="SEARCH">
+<p>Search: <input type="text" size="100" maxlength="255" name="Search" value="'.$search.'"> <input type="submit" value="SEARCH">
 </form>
 ';
 
-// check for required search
-$search = (isset($_POST["Search"])) ? trim($_POST["Search"]) : "";
+// show results?
 if(!empty($search))
 {
 	// connect to the PDO
@@ -36,12 +38,11 @@ if(!empty($search))
 	
 	// prepare the statement with the search engine
 	$sth = $dbh->prepare("
-		SELECT Products.Name,Products.Description,Products.OldPrice,Products.Price,Products.Image,
-		to_tsvector(coalesce(string_agg(Products.Name, ' '))) || to_tsvector(coalesce(string_agg(Products.Description, ' '))) AS Document
-		FROM Products WHERE Document @@ to_tsvector(:SearchCriteria)
+		SELECT Products.Name,Products.Description,Products.OldPrice,Products.Price,Products.Image,Products.URL
+		FROM Products WHERE Products.QueryDocument @@ to_tsquery(:SearchCriteria)
 		ORDER BY Products.Name LIMIT 100
 	");
-	$sth->bindValue(":SearchCriteria",$search);
+	$sth->bindValue(":SearchCriteria","%".$search."%");
 	$sth->execute();
 	
 	// display results
@@ -54,7 +55,7 @@ if(!empty($search))
 		<p><b>Old Price:</b> ".$row["oldprice"]."
 		<p><b>Price:</b> ".$row["price"]."
 		<p><b>Image:</b> <img src=\"".$row["image"]."\">
-		<p><b>URL:</b> <a target=\"_blank\" href=\"".$row["url"]."\">
+		<p><b>URL:</b> <a target=\"_blank\" href=\"".$row["url"]."\">".$row["url"]."</a>
 		</div>
 		<p>&nbsp;
 		";

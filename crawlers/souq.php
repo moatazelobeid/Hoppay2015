@@ -8,25 +8,14 @@ class MyCrawler extends PHPCrawler
 	
 	function handleDocumentInfo($DocInfo) 
 	{
-		echo "Page requested: ".$DocInfo->url." (".$DocInfo->http_status_code.")\n";
-		echo "Referer-page: ".$DocInfo->referer_url."\n";
-		if(strpos($DocInfo->source,"Add to Cart"))
+		echo "(souq) Page requested: ".$DocInfo->url." (".$DocInfo->http_status_code.")\n";
+		echo "(souq) Referer-page: ".$DocInfo->referer_url."\n";
+		if(strpos($DocInfo->source,"Add to cart"))
 		{
-			$dbh = new PDO("pgsql:host=localhost;dbname=Hoopay;port=5432;","postgres","Hoopay2015");
-			$dbh->query("SET search_path TO Products");
-
-			$url = $DocInfo->url;
-			$temp = file_get_contents($url);
-
 			$p1 = strpos($temp,"<h1 itemprop=\"name");
 			$p1 = strpos($temp,">",$p1);
 			$p2 = strpos($temp,"</h1>",$p1);
 			$title = trim(substr($temp,$p1+1,$p2-$p1-1));
-
-			$p1 = strpos($temp,"<h3 class=\"subhead was");
-			$p1 = strpos($temp,">",$p1);
-			$p2 = strpos($temp,"</h",$p1);
-			$oldprice = trim(substr($temp,$p1+1,$p2-$p1-1));
 
 			$p1 = strpos($temp,"<h3 class=\"price\">");
 			$p1 = strpos($temp,"</small",$p1);
@@ -43,21 +32,21 @@ class MyCrawler extends PHPCrawler
 			$p2 = strpos($temp,"</div>",$p1);
 			$description = trim(substr($temp,$p1+1,$p2-$p1-1));
 
-			$p1 = strpos($temp,"<meta itemprop=\"image\" content");
-			$p1 = strpos($temp,"\"",$p1);
-			$p2 = strpos($temp,"\"",$p1);
-			$image = trim(substr($temp,$p1+1,$p2-$p1-1));
+			$p1 = strpos($temp,"<div class=\"slider gallary");
+			$p1 = strpos($temp,"<div class=\"img-bucket",$p1);
+			$p1 = strpos($temp,"<img src=\"",$p1);
+			$p2 = strpos($temp,"\"",$p1+15);
+			$image = trim(substr($temp,$p1+10,$p2-$p1-10));
 
 			$sth = $dbh->prepare("DELETE FROM Products WHERE URL ILIKE :URL");
 			$sth->bindValue(":URL",$url);
 			$sth->execute();
 			if($sth->errorCode() != 0) die("! erro linha: ".__LINE__."\n".$sth->errorInfo()[2]);
 
-			$sth = $dbh->prepare("INSERT INTO Products (IdMerchant,Name,Description,OldPrice,Price,URL,Image) VALUES (:IdMerchant,:Name,:Description,:OldPrice,:Price,:URL,:Image)");
+			$sth = $dbh->prepare("INSERT INTO Products (IdMerchant,Name,Description,Price,URL,Image,QueryDocument) VALUES (:IdMerchant,:Name::text,:Description::text,:Price,:URL,:Image,to_tsvector(:Name::text) || to_tsvector(:Description::text))");
 			$sth->bindValue(":IdMerchant",self::IdMerchant);
 			$sth->bindValue(":Name",$title);
 			$sth->bindValue(":Description",$description);
-			$sth->bindValue(":OldPrice",$oldprice);
 			$sth->bindValue(":Price",$newprice);
 			$sth->bindValue(":URL",$url);
 			$sth->bindValue(":Image",$image);
